@@ -1042,9 +1042,13 @@ drop_existing_compression_table(Hypertable *ht)
 						   " compressed hypertable could not be found.",
 						   NameStr(ht->fd.table_name))));
 
-	/* need to drop the old compressed hypertable in case the segment by columns changed (and
-	 * thus the column types of compressed hypertable need to change) */
-	ts_hypertable_drop(compressed, DROP_RESTRICT);
+	/* Need to drop the old compressed hypertable in case the segment by columns
+	 * changed (and thus the column types of compressed hypertable need to change)
+	 *
+	 * We need to cascade the delete since chunks are now not removed during
+	 * decompression.
+	 * */
+	ts_hypertable_drop(compressed, DROP_CASCADE);
 	ts_hypertable_compression_delete_by_hypertable_id(ht->fd.id);
 	ts_hypertable_unset_compressed(ht);
 }
@@ -1160,6 +1164,7 @@ tsl_process_compress_table(AlterTableCmd *cmd, Hypertable *ht,
 	List *segmentby_cols;
 	List *orderby_cols;
 	List *constraint_list = NIL;
+	Hypertable *compress_ht = NULL;
 
 	ts_feature_flag_check(FEATURE_HYPERTABLE_COMPRESSION);
 
@@ -1233,6 +1238,22 @@ tsl_process_compress_table(AlterTableCmd *cmd, Hypertable *ht,
 		Oid tablespace_oid = get_rel_tablespace(ht->main_table_relid);
 		compress_htid = create_compression_table(ownerid, &compress_cols, tablespace_oid);
 		ts_hypertable_set_compressed(ht, compress_htid);
+		/*
+		 * If chunks are present then create compressed chunks as well
+		 * as part of enabling compression
+		 */
+		compress_ht = ts_hypertable_get_by_id(compress_htid);
+		ListCell *lc;
+		List *chunk_id_list = ts_chunk_get_chunk_ids_by_hypertable_id(ht->fd.id);
+		foreach (lc, chunk_id_list)
+		{
+			int32 chunk_id = lfirst_int(lc);
+			Chunk *chunk = ts_chunk_get_by_id(chunk_id, true);
+			Chunk *compress_chunk = create_compress_chunk(compress_ht, chunk, InvalidOid);
+			ts_chunk_constraints_create(compress_ht, compress_chunk);
+			ts_trigger_create_all_on_chunk(compress_chunk);
+			ts_chunk_set_compressed_chunk(chunk, compress_chunk->fd.id);
+		}
 	}
 
 	compresscolinfo_add_catalog_entries(&compress_cols, ht->fd.id);

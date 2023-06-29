@@ -90,3 +90,4 @@ ALTER FUNCTION _timescaledb_functions.attach_osm_table_chunk(regclass, regclass)
 
 UPDATE _timescaledb_catalog.hypertable SET chunk_sizing_func_schema = '_timescaledb_internal' WHERE chunk_sizing_func_schema = '_timescaledb_functions' AND chunk_sizing_func_name = 'calculate_chunk_interval';
 
+DROP FUNCTION IF EXISTS _timescaledb_functions.create_compressed_chunks_for_hypertable(REGCLASS);

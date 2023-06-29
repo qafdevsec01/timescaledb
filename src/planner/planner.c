@@ -1318,7 +1318,7 @@ timescaledb_get_relation_info_hook(PlannerInfo *root, Oid relation_objectid, boo
 				RangeTblEntry *chunk_rte = planner_rt_fetch(rel->relid, root);
 				Chunk *chunk = ts_chunk_get_by_relid(chunk_rte->relid, true);
 
-				if (chunk->fd.compressed_chunk_id != INVALID_CHUNK_ID)
+				if (ts_chunk_is_compressed(chunk))
 				{
 					Relation uncompressed_chunk = table_open(relation_objectid, NoLock);
 

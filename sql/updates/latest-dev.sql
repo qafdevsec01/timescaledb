@@ -129,3 +129,6 @@ ALTER FUNCTION _timescaledb_internal.get_chunk_colstats(regclass) SET SCHEMA _ti
 
 UPDATE _timescaledb_catalog.hypertable SET chunk_sizing_func_schema = '_timescaledb_functions' WHERE chunk_sizing_func_schema = '_timescaledb_internal' AND chunk_sizing_func_name = 'calculate_chunk_interval';
 
+CREATE OR REPLACE FUNCTION _timescaledb_functions.create_compressed_chunks_for_hypertable(
+    hypertable REGCLASS
+) RETURNS BOOL AS '$libdir/timescaledb-2.12.0-dev', 'ts_create_compressed_chunks_for_hypertable' LANGUAGE C STRICT VOLATILE;
