@@ -201,9 +201,17 @@ adjust_data_node_rel_attrs(PlannerInfo *root, RelOptInfo *data_node_rel, RelOptI
 								make_restrictinfo_compat(root,
 														 (Expr *) onecq,
 														 rinfo->is_pushed_down,
+#if PG16_LT
+														 false,
+														 false,
+#else
+														 rinfo->has_clone,
+														 rinfo->is_clone,
+#endif
 														 rinfo->outerjoin_delayed,
 														 pseudoconstant,
 														 rinfo->security_level,
+														 NULL,
 														 NULL,
 														 NULL,
 														 NULL));
