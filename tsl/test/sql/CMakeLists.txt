@@ -65,8 +65,6 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
     cagg_dump.sql
     cagg_errors_deprecated.sql
     cagg_joins.sql
-    cagg_migrate.sql
-    cagg_migrate_dist_ht.sql
     cagg_multi.sql
     cagg_on_cagg.sql
     cagg_on_cagg_dist_ht.sql
@@ -182,8 +180,7 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
     dist_partial_agg.sql.in
     dist_query.sql.in
     cagg_invalidation_dist_ht.sql.in
-    continuous_aggs.sql.in
-    continuous_aggs_deprecated.sql.in)
+    continuous_aggs.sql.in)
   if(USE_TELEMETRY)
     list(APPEND TEST_TEMPLATES telemetry_stats.sql.in)
   endif()

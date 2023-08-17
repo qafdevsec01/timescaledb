@@ -31,6 +31,14 @@ cagg_rebuild_view_definition(ContinuousAgg *agg, Hypertable *mat_ht, bool force_
 	bool finalized = ContinuousAggIsFinalized(agg);
 	bool rebuild_cagg_with_joins = false;
 
+	if (!finalized)
+	{
+		ereport(WARNING,
+				(errmsg("Continuous Aggregates with partials is not supported anymore."),
+				 errdetail("Migrate the Continuous Aggregates to finalized form to rebuild.")));
+		return;
+	}
+
 	/* Extract final query from user view query. */
 	Query *final_query = copyObject(user_query);
 	RemoveRangeTableEntries(final_query);
