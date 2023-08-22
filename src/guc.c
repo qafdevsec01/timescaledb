@@ -82,6 +82,7 @@ TSDLLEXPORT bool ts_guc_enable_decompression_sorted_merge = true;
 bool ts_guc_enable_per_data_node_queries = true;
 bool ts_guc_enable_parameterized_data_node_scan = true;
 bool ts_guc_enable_async_append = true;
+bool ts_guc_enable_partitionwise_aggregation = true;
 TSDLLEXPORT bool ts_guc_enable_compression_indexscan = true;
 TSDLLEXPORT bool ts_guc_enable_bulk_decompression = true;
 TSDLLEXPORT bool ts_guc_enable_skip_scan = true;
@@ -528,6 +529,18 @@ _guc_init(void)
 							 "Enable optimization that runs remote queries asynchronously"
 							 "across data nodes",
 							 &ts_guc_enable_async_append,
+							 true,
+							 PGC_USERSET,
+							 0,
+							 NULL,
+							 NULL,
+							 NULL);
+
+	DefineCustomBoolVariable("timescaledb.enable_partitionwise_aggregation",
+							 "Enable partition-wise aggregation per chunk",
+							 "Enable the partition-wise aggregation pushdown to the"
+							 "chunk level",
+							 &ts_guc_enable_partitionwise_aggregation,
 							 true,
 							 PGC_USERSET,
 							 0,

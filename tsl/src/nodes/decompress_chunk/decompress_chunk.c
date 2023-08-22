@@ -1953,3 +1953,11 @@ build_sortinfo(Chunk *chunk, RelOptInfo *chunk_rel, CompressionInfo *info, List 
 	sort_info.can_pushdown_sort = true;
 	return sort_info;
 }
+
+/* Check if the provided path is a DecompressChunkPath */
+bool
+ts_is_decompress_chunk_path(Path *path)
+{
+	return IsA(path, CustomPath) &&
+		   castNode(CustomPath, path)->methods == &decompress_chunk_path_methods;
+}

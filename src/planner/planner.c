@@ -59,6 +59,7 @@
 #include "nodes/hypertable_modify.h"
 #include "partitioning.h"
 #include "planner/planner.h"
+#include "planner/partialize.h"
 #include "utils.h"
 
 #include "compat/compat.h"
@@ -1546,6 +1547,9 @@ timescaledb_create_upper_paths_hook(PlannerInfo *root, UpperRelationKind stage,
 
 		if (parse->hasAggs)
 			ts_preprocess_first_last_aggregates(root, root->processed_tlist);
+
+		if (ts_guc_enable_partitionwise_aggregation)
+			ts_pushdown_partial_agg(root, ht, input_rel, output_rel, extra);
 	}
 }
 
