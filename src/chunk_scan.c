@@ -51,8 +51,6 @@ ts_chunk_scan_by_chunk_ids(const Hyperspace *hs, const List *chunk_ids, unsigned
 	ListCell *lc;
 	int remote_chunk_count = 0;
 
-	DEBUG_WAITPOINT("expanded_chunks");
-
 	Assert(OidIsValid(hs->main_table_relid));
 	orig_mcxt = MemoryContextSwitchTo(work_mcxt);
 
@@ -97,12 +95,17 @@ ts_chunk_scan_by_chunk_ids(const Hyperspace *hs, const List *chunk_ids, unsigned
 		/* Only one chunk should match */
 		Assert(ts_scan_iterator_next(&chunk_it) == NULL);
 
+		DEBUG_WAITPOINT("hypertable_expansion_before_lock_chunk");
 		if (!ts_chunk_lock_if_exists(chunk_reloid, AccessShareLock))
 		{
 			continue;
 		}
 
-		/* Now after we have locked the chunk, we have to reread its metadata. */
+		/*
+		 * Now after we have locked the chunk, we have to reread its metadata.
+		 * It might have been modified concurrently by decompression, for
+		 * example.
+		 */
 		ts_chunk_scan_iterator_set_chunk_id(&chunk_it, chunk_id);
 		ts_scan_iterator_start_or_restart_scan(&chunk_it);
 		ti = ts_scan_iterator_next(&chunk_it);
