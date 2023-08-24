@@ -54,3 +54,67 @@ compression_status
 Uncompressed      
 (1 row)
 
+
+starting permutation: s2_explain_update s1_begin s1_decompress s2_explain_update s1_commit s2_explain_update
+compression_status
+------------------
+Compressed        
+(1 row)
+
+step s2_explain_update: 
+    EXPLAIN (COSTS OFF) UPDATE sensor_data SET cpu = cpu + 1;
+
+QUERY PLAN                                                  
+------------------------------------------------------------
+Custom Scan (HypertableModify)                              
+  ->  Update on sensor_data                                 
+        Update on _hyper_X_X_chunk sensor_data_1            
+        ->  Result                                          
+              ->  Seq Scan on _hyper_X_X_chunk sensor_data_1
+(5 rows)
+
+step s1_begin: 
+  BEGIN;
+
+step s1_decompress: 
+   SELECT count(*) FROM (SELECT decompress_chunk(i, if_compressed => true) FROM show_chunks('sensor_data') i) i;
+   SELECT compression_status FROM chunk_compression_stats('sensor_data');
+
+count
+-----
+    1
+(1 row)
+
+compression_status
+------------------
+Uncompressed      
+(1 row)
+
+step s2_explain_update: 
+    EXPLAIN (COSTS OFF) UPDATE sensor_data SET cpu = cpu + 1;
+ <waiting ...>
+step s1_commit: 
+  COMMIT;
+
+step s2_explain_update: <... completed>
+QUERY PLAN                                                  
+------------------------------------------------------------
+Custom Scan (HypertableModify)                              
+  ->  Update on sensor_data                                 
+        Update on _hyper_X_X_chunk sensor_data_1            
+        ->  Result                                          
+              ->  Seq Scan on _hyper_X_X_chunk sensor_data_1
+(5 rows)
+
+step s2_explain_update: 
+    EXPLAIN (COSTS OFF) UPDATE sensor_data SET cpu = cpu + 1;
+
+QUERY PLAN                                                  
+------------------------------------------------------------
+Custom Scan (HypertableModify)                              
+  ->  Update on sensor_data                                 
+        Update on _hyper_X_X_chunk sensor_data_1            
+        ->  Result                                          
+              ->  Seq Scan on _hyper_X_X_chunk sensor_data_1
+(5 rows)
+
