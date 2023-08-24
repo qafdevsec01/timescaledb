@@ -34,8 +34,8 @@ setup {
        sensor_id,
        random() AS cpu,
        random()* 100 AS temperature
-   FROM generate_series('2022-01-01', '2022-01-15', INTERVAL '1 minute') AS g1(time),
-       generate_series(1, 50, 1) AS g2(sensor_id)
+   FROM generate_series('2022-01-01', '2022-01-15', INTERVAL '5 minute') AS g1(time),
+       generate_series(1, 10, 1) AS g2(sensor_id)
    ORDER BY time;
 
    SELECT count(*) FROM sensor_data;
@@ -73,7 +73,7 @@ step "s2_read_sensor_data" {
 }
 
 step "s2_explain_update" {
-    EXPLAIN (COSTS OFF) UPDATE sensor_data SET cpu = cpu + 1;
+    UPDATE sensor_data SET cpu = cpu + 1 WHERE cpu = 0.1111111;
 }
 
 permutation "s2_read_sensor_data" "s1_begin" "s1_decompress" "s2_read_sensor_data" "s1_commit" "s2_read_sensor_data"

@@ -51,6 +51,8 @@ ts_chunk_scan_by_chunk_ids(const Hyperspace *hs, const List *chunk_ids, unsigned
 	ListCell *lc;
 	int remote_chunk_count = 0;
 
+	DEBUG_WAITPOINT("expanded_chunks");
+
 	Assert(OidIsValid(hs->main_table_relid));
 	orig_mcxt = MemoryContextSwitchTo(work_mcxt);
 
@@ -133,8 +135,6 @@ ts_chunk_scan_by_chunk_ids(const Hyperspace *hs, const List *chunk_ids, unsigned
 	Assert(locked_chunk_count == 0 || locked_chunks != NULL);
 	Assert(locked_chunk_count <= list_length(chunk_ids));
 	Assert(CurrentMemoryContext == work_mcxt);
-
-	DEBUG_WAITPOINT("expanded_chunks");
 
 	for (int i = 0; i < locked_chunk_count; i++)
 	{

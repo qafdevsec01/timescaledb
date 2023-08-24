@@ -62,16 +62,7 @@ Compressed
 (1 row)
 
 step s2_explain_update: 
-    EXPLAIN (COSTS OFF) UPDATE sensor_data SET cpu = cpu + 1;
-
-QUERY PLAN                                                  
-------------------------------------------------------------
-Custom Scan (HypertableModify)                              
-  ->  Update on sensor_data                                 
-        Update on _hyper_X_X_chunk sensor_data_1            
-        ->  Result                                          
-              ->  Seq Scan on _hyper_X_X_chunk sensor_data_1
-(5 rows)
+    UPDATE sensor_data SET cpu = cpu + 1 WHERE cpu = 0.1111111;
 
 step s1_begin: 
   BEGIN;
@@ -91,30 +82,12 @@ Uncompressed
 (1 row)
 
 step s2_explain_update: 
-    EXPLAIN (COSTS OFF) UPDATE sensor_data SET cpu = cpu + 1;
+    UPDATE sensor_data SET cpu = cpu + 1 WHERE cpu = 0.1111111;
  <waiting ...>
 step s1_commit: 
   COMMIT;
 
 step s2_explain_update: <... completed>
-QUERY PLAN                                                  
-------------------------------------------------------------
-Custom Scan (HypertableModify)                              
-  ->  Update on sensor_data                                 
-        Update on _hyper_X_X_chunk sensor_data_1            
-        ->  Result                                          
-              ->  Seq Scan on _hyper_X_X_chunk sensor_data_1
-(5 rows)
-
 step s2_explain_update: 
-    EXPLAIN (COSTS OFF) UPDATE sensor_data SET cpu = cpu + 1;
-
-QUERY PLAN                                                  
-------------------------------------------------------------
-Custom Scan (HypertableModify)                              
-  ->  Update on sensor_data                                 
-        Update on _hyper_X_X_chunk sensor_data_1            
-        ->  Result                                          
-              ->  Seq Scan on _hyper_X_X_chunk sensor_data_1
-(5 rows)
+    UPDATE sensor_data SET cpu = cpu + 1 WHERE cpu = 0.1111111;
 
