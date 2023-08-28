@@ -43,16 +43,13 @@ ts_chunk_scan_by_chunk_ids(const Hyperspace *hs, const List *chunk_ids, unsigned
 {
 	MemoryContext work_mcxt =
 		AllocSetContextCreate(CurrentMemoryContext, "chunk-scan-work", ALLOCSET_DEFAULT_SIZES);
-	MemoryContext per_tuple_mcxt =
-		AllocSetContextCreate(work_mcxt, "chunk-scan-per-tuple", ALLOCSET_SMALL_SIZES);
-	MemoryContext orig_mcxt;
 	Chunk **locked_chunks = NULL;
 	int locked_chunk_count = 0;
 	ListCell *lc;
 	int remote_chunk_count = 0;
 
 	Assert(OidIsValid(hs->main_table_relid));
-	orig_mcxt = MemoryContextSwitchTo(work_mcxt);
+	MemoryContext orig_mcxt = MemoryContextSwitchTo(work_mcxt);
 
 	/*
 	 * For each matching chunk, fill in the metadata from the "chunk" table.
@@ -112,12 +109,7 @@ ts_chunk_scan_by_chunk_ids(const Hyperspace *hs, const List *chunk_ids, unsigned
 		Assert(ti != NULL);
 		Chunk *chunk = MemoryContextAllocZero(orig_mcxt, sizeof(Chunk));
 
-		MemoryContextSwitchTo(per_tuple_mcxt);
-		MemoryContextReset(per_tuple_mcxt);
-
-		MemoryContext old_mcxt = MemoryContextSwitchTo(ti->mctx);
 		ts_chunk_formdata_fill(&chunk->fd, ti);
-		MemoryContextSwitchTo(old_mcxt);
 
 		chunk->constraints = NULL;
 		chunk->cube = NULL;
@@ -126,8 +118,6 @@ ts_chunk_scan_by_chunk_ids(const Hyperspace *hs, const List *chunk_ids, unsigned
 
 		locked_chunks[locked_chunk_count] = chunk;
 		locked_chunk_count++;
-
-		MemoryContextSwitchTo(work_mcxt);
 
 		/* Only one chunk should match */
 		Assert(ts_scan_iterator_next(&chunk_it) == NULL);
@@ -163,9 +153,7 @@ ts_chunk_scan_by_chunk_ids(const Hyperspace *hs, const List *chunk_ids, unsigned
 		while (ts_scan_iterator_next(&constr_it) != NULL)
 		{
 			TupleInfo *constr_ti = ts_scan_iterator_tuple_info(&constr_it);
-			MemoryContextSwitchTo(per_tuple_mcxt);
 			ts_chunk_constraints_add_from_tuple(chunk->constraints, constr_ti);
-			MemoryContextSwitchTo(work_mcxt);
 		}
 	}
 	ts_scan_iterator_close(&constr_it);
@@ -249,9 +237,6 @@ ts_chunk_scan_by_chunk_ids(const Hyperspace *hs, const List *chunk_ids, unsigned
 					MemoryContext old_mcxt;
 					HeapTuple tuple;
 
-					MemoryContextSwitchTo(per_tuple_mcxt);
-					MemoryContextReset(per_tuple_mcxt);
-
 					tuple = ts_scanner_fetch_heap_tuple(ti, false, &should_free);
 					form = (Form_chunk_data_node) GETSTRUCT(tuple);
 					old_mcxt = MemoryContextSwitchTo(ti->mctx);
@@ -265,8 +250,6 @@ ts_chunk_scan_by_chunk_ids(const Hyperspace *hs, const List *chunk_ids, unsigned
 
 					if (should_free)
 						heap_freetuple(tuple);
-
-					MemoryContextSwitchTo(work_mcxt);
 				}
 			}
 		}
